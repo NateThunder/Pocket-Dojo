@@ -113,6 +113,12 @@ function Game() {
     : null
   const activeMoveId = activeMenuNode?.moveId ?? null
   const currentNode = activeMoveId ? baseNodeLookup[activeMoveId] : null
+  const parentMenuNode =
+    activeMenuNode && activeMenuNode.parentId ? nodeLookup[activeMenuNode.parentId] ?? null : null
+  const parentMoveId = parentMenuNode?.moveId ?? null
+  const sourceMoveId = activeMoveId ?? parentMoveId ?? null
+  const sourceMove = sourceMoveId ? baseNodeLookup[sourceMoveId] : null
+  const isLockedNode = Boolean(activeMenuNode?.moveId)
 
   // Moves list either shows starting techniques or the children of the selected node.
   const availableMoves = useMemo(() => {
@@ -120,15 +126,15 @@ function Game() {
       return []
     }
 
-    if (!activeMoveId) {
+    if (!sourceMoveId) {
       return stageOneMoves
     }
 
-    const nextIds = edgeLookup[activeMoveId] ?? []
+    const nextIds = edgeLookup[sourceMoveId] ?? []
     return nextIds
       .map((id) => baseNodeLookup[id])
       .filter((node): node is BjjNode => Boolean(node))
-  }, [activeMenuNode, activeMoveId, stageOneMoves, edgeLookup, baseNodeLookup])
+  }, [activeMenuNode, sourceMoveId, stageOneMoves, edgeLookup, baseNodeLookup])
 
   // Grouping by node.group keeps the menu readable for larger data sets.
   const groupedMoves = useMemo(() => {
@@ -144,9 +150,10 @@ function Game() {
 
   const headerTitle = !activeMenuNode
     ? 'Select a node to begin'
-    : !activeMoveId
+    : !sourceMove
       ? 'Stage 1 Moves'
-      : `Next: ${currentNode?.name ?? 'Current Move'}`
+      : `Next: ${sourceMove.name ?? 'Current Move'}`
+  const isTerminalMove = currentNode?.type === 'Submission'
 
   // Every token shows either its move name, an "Add Move" placeholder, or the initial text.
   const getNodeLabel = (node: ActiveNode) => {
@@ -155,6 +162,15 @@ function Game() {
     }
 
     return node.parentId ? 'Add Move' : 'Start Here'
+  }
+
+  const getNodeStageClass = (node: ActiveNode) => {
+    if (!node.moveId) {
+      return node.parentId ? 'stage-placeholder' : 'stage-start'
+    }
+
+    const stage = baseNodeLookup[node.moveId]?.stage
+    return stage ? `stage-${stage}` : 'stage-placeholder'
   }
 
   const createTransform = (node: ActiveNode) => {
@@ -243,9 +259,10 @@ function Game() {
 
   // Selecting a move locks it to the current node and auto-spawns a child placeholder.
   const handleSelectMove = (moveId: string) => {
-    if (!activeMenuNode) return
+    if (!activeMenuNode || activeMenuNode.moveId) return
 
-    let nextMenuNodeId: string | null = null
+    const selectedMove = baseNodeLookup[moveId]
+    const isSubmission = selectedMove?.type === 'Submission'
 
     setNodes((prev) => {
       const targetNode = prev.find((node) => node.id === activeMenuNode.id)
@@ -253,9 +270,17 @@ function Game() {
         return prev
       }
 
-      const updatedNodes = prev.map((node) =>
+      const descendantIds = isSubmission ? collectDescendantIds(targetNode.id, prev) : null
+      const withoutDescendants = descendantIds
+        ? prev.filter((node) => !descendantIds.has(node.id))
+        : prev
+      const updatedNodes = withoutDescendants.map((node) =>
         node.id === targetNode.id ? { ...node, moveId } : node,
       )
+
+      if (isSubmission) {
+        return updatedNodes
+      }
 
       if (!arenaRef.current) {
         return updatedNodes
@@ -266,7 +291,8 @@ function Game() {
       )
 
       if (existingPlaceholders.length > 0) {
-        nextMenuNodeId = existingPlaceholders[0].id
+        const placeholderId = existingPlaceholders[0].id
+        setActiveMenuNodeId(placeholderId)
         return updatedNodes
       }
 
@@ -274,21 +300,15 @@ function Game() {
       const siblings = updatedNodes.filter((node) => node.parentId === targetNode.id)
       const newNode = createChildNode(targetNode, siblings.length, arenaRect)
 
-      nextMenuNodeId = newNode.id
+      setActiveMenuNodeId(newNode.id)
       return [...updatedNodes, newNode]
     })
-
-    if (nextMenuNodeId) {
-      setActiveMenuNodeId(nextMenuNodeId)
-    }
   }
 
   const handleAddBranch = () => {
-    if (!activeMenuNode || !activeMoveId || !arenaRef.current) {
+    if (!activeMenuNode || !activeMoveId || !arenaRef.current || isTerminalMove) {
       return
     }
-
-    let createdChildId: string | null = null
 
     setNodes((prev) => {
       const targetNode = prev.find((node) => node.id === activeMenuNode.id)
@@ -299,13 +319,9 @@ function Game() {
       const arenaRect = arenaRef.current!.getBoundingClientRect()
       const siblings = prev.filter((node) => node.parentId === targetNode.id)
       const newNode = createChildNode(targetNode, siblings.length, arenaRect)
-      createdChildId = newNode.id
+      setActiveMenuNodeId(newNode.id)
       return [...prev, newNode]
     })
-
-    if (createdChildId) {
-      setActiveMenuNodeId(createdChildId)
-    }
   }
 
   // Clears the current node's assignment plus any children it spawned.
@@ -339,11 +355,12 @@ function Game() {
       {/* Interactive node tokens */}
       {nodes.map((node) => {
         const label = getNodeLabel(node)
+        const stageClass = getNodeStageClass(node)
         const isDragging = draggingNodeId === node.id
         return (
           <div
             key={node.id}
-            className={`game-node${isDragging ? ' is-dragging' : ''}`}
+            className={`game-node ${stageClass}${isDragging ? ' is-dragging' : ''}`}
             role="button"
             aria-label={label}
             tabIndex={0}
@@ -368,7 +385,7 @@ function Game() {
                 type="button"
                 className="menu-action"
                 onClick={handleAddBranch}
-                disabled={!activeMoveId}
+                disabled={!activeMoveId || isTerminalMove}
               >
                 Add Branch
               </button>
@@ -399,6 +416,7 @@ function Game() {
                             type="button"
                             className={`moves-menu__item${isSelected ? ' is-selected' : ''}`}
                             onClick={() => handleSelectMove(move.id)}
+                            disabled={isLockedNode}
                           >
                             <span className="move-name">{move.name}</span>
                             <span className="move-type">{move.type}</span>
