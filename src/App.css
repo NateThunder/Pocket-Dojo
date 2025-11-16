@@ -223,6 +223,11 @@
   box-shadow: 0 25px 50px rgba(0, 0, 0, 0.55);
 }
 
+.game-node.is-selected {
+  box-shadow: 0 0 0 3px rgba(255, 213, 119, 0.7), 0 0 18px rgba(255, 213, 119, 0.6),
+    0 25px 50px rgba(0, 0, 0, 0.55);
+}
+
 /* Flyout menu that lists available moves for the selected node */
 .moves-menu {
   position: absolute;
