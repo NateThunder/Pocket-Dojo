@@ -405,10 +405,11 @@ function Game() {
         const label = getNodeLabel(node)
         const stageClass = getNodeStageClass(node)
         const isDragging = draggingNodeId === node.id
+        const isSelected = activeMenuNodeId === node.id
         return (
           <div
             key={node.id}
-            className={`game-node ${stageClass}${isDragging ? ' is-dragging' : ''}`}
+            className={`game-node ${stageClass}${isDragging ? ' is-dragging' : ''}${isSelected ? ' is-selected' : ''}`}
             role="button"
             aria-label={label}
             tabIndex={0}
