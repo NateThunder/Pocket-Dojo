@@ -52,8 +52,11 @@ function collectDescendantIds(targetId: string, nodes: ActiveNode[]) {
 // Core Flow Node Trainer surface: handles dragging, menu toggles, and branching.
 function Game() {
   const arenaRef = useRef<HTMLDivElement | null>(null)
+  const menuRef = useRef<HTMLDivElement | null>(null)
   const nodeCounterRef = useRef(2)
   const hasDraggedRef = useRef(false)
+  const menuDragOffsetRef = useRef({ x: 0, y: 0 })
+  const menuDraggingRef = useRef(false)
   const createChildNode = (parent: ActiveNode, siblingCount: number, arenaRect: DOMRect): ActiveNode => {
     const offsetX = NODE_SIZE + 48
     const verticalSpacing = NODE_SIZE + 32
@@ -79,6 +82,8 @@ function Game() {
   ])
   // Keeps track of which node currently has its move-picker menu open.
   const [activeMenuNodeId, setActiveMenuNodeId] = useState<string | null>(null)
+  const [menuPosition, setMenuPosition] = useState({ x: 750, y: 24 })
+  const [isDraggingMenu, setIsDraggingMenu] = useState(false)
   const [draggingNodeId, setDraggingNodeId] = useState<string | null>(null)
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
 
@@ -257,6 +262,49 @@ function Game() {
       hasDraggedRef.current = false
     }
 
+  const handleMenuPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (!arenaRef.current || !menuRef.current) return
+    const isButtonTarget = (event.target as HTMLElement).closest('button')
+    if (isButtonTarget) {
+      return
+    }
+
+    const menuRect = menuRef.current.getBoundingClientRect()
+    menuDragOffsetRef.current = {
+      x: event.clientX - menuRect.left,
+      y: event.clientY - menuRect.top,
+    }
+    menuDraggingRef.current = true
+    setIsDraggingMenu(true)
+    event.currentTarget.setPointerCapture(event.pointerId)
+    event.preventDefault()
+  }
+
+  const handleMenuPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (!menuDraggingRef.current || !arenaRef.current || !menuRef.current) return
+
+    const arenaRect = arenaRef.current.getBoundingClientRect()
+    const menuRect = menuRef.current.getBoundingClientRect()
+    const maxX = Math.max(0, arenaRect.width - menuRect.width)
+    const maxY = Math.max(0, arenaRect.height - menuRect.height)
+    const nextX = clamp(event.clientX - arenaRect.left - menuDragOffsetRef.current.x, 0, maxX)
+    const nextY = clamp(event.clientY - arenaRect.top - menuDragOffsetRef.current.y, 0, maxY)
+
+    setMenuPosition((prev) => {
+      if (prev.x === nextX && prev.y === nextY) {
+        return prev
+      }
+      return { x: nextX, y: nextY }
+    })
+  }
+
+  const handleMenuPointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (!menuDraggingRef.current) return
+    menuDraggingRef.current = false
+    setIsDraggingMenu(false)
+    event.currentTarget.releasePointerCapture(event.pointerId)
+  }
+
   // Selecting a move locks it to the current node and auto-spawns a child placeholder.
   const handleSelectMove = (moveId: string) => {
     if (!activeMenuNode || activeMenuNode.moveId) return
@@ -377,8 +425,20 @@ function Game() {
 
       {/* Contextual move picker menu */}
       {activeMenuNode && (
-        <div className="moves-menu" role="dialog" aria-label="Pocket Dojo move library">
-          <div className="moves-menu__header">
+        <div
+          className={`moves-menu${isDraggingMenu ? ' is-dragging' : ''}`}
+          role="dialog"
+          aria-label="Pocket Dojo move library"
+          ref={menuRef}
+          style={{ top: menuPosition.y, left: menuPosition.x }}
+        >
+          <div
+            className="moves-menu__header"
+            onPointerDown={handleMenuPointerDown}
+            onPointerMove={handleMenuPointerMove}
+            onPointerUp={handleMenuPointerUp}
+            onPointerCancel={handleMenuPointerUp}
+          >
             <h2>{headerTitle}</h2>
             <div className="moves-menu__actions">
               <button
