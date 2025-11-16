@@ -191,6 +191,33 @@
   transition: box-shadow 0.2s ease;
 }
 
+.game-node.stage-start,
+.game-node.stage-placeholder {
+  background: linear-gradient(135deg, #ffffff 0%, #f1f1f1 100%);
+  color: #1b1b1b;
+}
+
+.game-node.stage-1 {
+  background: linear-gradient(135deg, #ffffff 0%, #f1f1f1 100%);
+  color: #1b1b1b;
+}
+
+.game-node.stage-2 {
+  background: linear-gradient(135deg, #4a90e2 0%, #1f69c7 100%);
+}
+
+.game-node.stage-3 {
+  background: linear-gradient(135deg, #b483ff 0%, #7737d5 100%);
+}
+
+.game-node.stage-4 {
+  background: linear-gradient(135deg, #c28b5d 0%, #8a5325 100%);
+}
+
+.game-node.stage-5 {
+  background: linear-gradient(135deg, #4b4b4b 0%, #1f1f1f 100%);
+}
+
 .game-node.is-dragging {
   cursor: grabbing;
   box-shadow: 0 25px 50px rgba(0, 0, 0, 0.55);
@@ -405,6 +432,12 @@
   color: inherit;
   cursor: pointer;
   transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.moves-menu__item:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .moves-menu__item:hover,
