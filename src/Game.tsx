@@ -58,7 +58,7 @@ function Game() {
   const menuDragOffsetRef = useRef({ x: 0, y: 0 })
   const menuDraggingRef = useRef(false)
   const createChildNode = (parent: ActiveNode, siblingCount: number, arenaRect: DOMRect): ActiveNode => {
-    const offsetX = NODE_SIZE + 48
+    const offsetX = NODE_SIZE + 58
     const verticalSpacing = NODE_SIZE + 32
     const nextX = clamp(parent.position.x + offsetX, 0, arenaRect.width - NODE_SIZE)
     const nextY = clamp(parent.position.y + siblingCount * verticalSpacing, 0, arenaRect.height - NODE_SIZE)
