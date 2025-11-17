@@ -106,7 +106,7 @@ You can tag these and calculate progress off them.
 ## 🗺️ Roadmap
 
 * [x] Moves flow chart
-* [ ] Video Player
+* [x] Video Player
 * [ ] Vidoe of full sequence of moves
 * [ ] User progress tracking
 * [ ] Coach/admin editor
