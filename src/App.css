@@ -176,12 +176,12 @@
 /* Draggable glowing node */
 .game-node {
   position: absolute;
-  width: 72px;
-  height: 72px;
+  width: 102px;
+  height: 82px;
   border-radius: 20px;
   background: linear-gradient(135deg, #ff8f70 0%, #ff3d54 100%);
   color: #fff;
-  font-weight: 600;
+  font-weight: 500;
   display: flex;
   align-items: center;
   justify-content: center;
