@@ -1,8 +1,14 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { bjjData } from './BjjData'
 
 // Shared node dimension so layout math for dragging/lines stays consistent.
 const NODE_SIZE = 72
+
+const moveVideoMap: Record<string, string> = {
+  stage1_double_leg: 'https://www.youtube.com/watch?v=dhZgpDHCARw',
+  stage1_guard_pull_closed: 'https://www.youtube.com/watch?v=1AXdd2czlzk',
+  stage2b_closed_guard_control: 'https://youtu.be/ypi3ie6hKTI?si=Th2NUNNp2oux9SOz&t=550',
+}
 
 type BjjNode = (typeof bjjData.nodes)[number]
 
@@ -86,6 +92,8 @@ function Game() {
   const [isDraggingMenu, setIsDraggingMenu] = useState(false)
   const [draggingNodeId, setDraggingNodeId] = useState<string | null>(null)
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
+  const [videoSourceUrl, setVideoSourceUrl] = useState<string | null>(null)
+  const [videoEmbedUrl, setVideoEmbedUrl] = useState<string | null>(null)
 
   // Static lookup tables built once per data payload so filtering stays quick.
   const baseNodeLookup = useMemo(() => {
@@ -202,6 +210,59 @@ function Game() {
       return acc
     }, [])
   }, [nodes, nodeLookup])
+
+  useEffect(() => {
+    if (!activeMoveId) {
+      setVideoSourceUrl(null)
+      setVideoEmbedUrl(null)
+      return
+    }
+
+    const configuredUrl = moveVideoMap[activeMoveId]
+    if (!configuredUrl) {
+      setVideoSourceUrl(null)
+      setVideoEmbedUrl(null)
+      return
+    }
+
+    const embed = convertToYouTubeEmbed(configuredUrl)
+    if (!embed) {
+      setVideoSourceUrl(null)
+      setVideoEmbedUrl(null)
+      return
+    }
+
+    setVideoSourceUrl(configuredUrl)
+    setVideoEmbedUrl(embed)
+  }, [activeMoveId])
+
+  const convertToYouTubeEmbed = (url: string) => {
+    try {
+      const parsed = new URL(url)
+      const hostname = parsed.hostname.replace(/^www\./, '')
+
+      if (hostname === 'youtu.be') {
+        const videoId = parsed.pathname.replace('/', '')
+        return videoId ? `https://www.youtube.com/embed/${videoId}` : null
+      }
+
+      if (hostname.includes('youtube.com')) {
+        if (parsed.pathname.startsWith('/embed/')) {
+          return `https://www.youtube.com${parsed.pathname}`
+        }
+        if (parsed.pathname.startsWith('/shorts/')) {
+          const [, , videoId] = parsed.pathname.split('/')
+          return videoId ? `https://www.youtube.com/embed/${videoId}` : null
+        }
+        const videoId = parsed.searchParams.get('v')
+        return videoId ? `https://www.youtube.com/embed/${videoId}` : null
+      }
+    } catch {
+      return null
+    }
+    return null
+  }
+
 
   // Pointer handlers below control drag lifecycle and menu toggles for each node.
   const handlePointerDown =
@@ -489,6 +550,23 @@ function Game() {
                 </div>
               ))
             )}
+            <div className="moves-menu__video-section">
+              <h3>Technique Video</h3>
+              {videoSourceUrl && videoEmbedUrl ? (
+                <>
+                  <div className="video-inline-player">
+                    <iframe
+                      title="Technique Video"
+                      src={videoEmbedUrl}
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  </div>
+                </>
+              ) : (
+                <p className="video-note">No video configured for this technique.</p>
+              )}
+            </div>
           </div>
         </div>
       )}
