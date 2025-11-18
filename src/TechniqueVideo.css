@@ -1,3 +1,10 @@
+/* Video container that holds the embedded player.
+   Connected UI:
+    - .menu-action--play / .menu-action--pause  => toggles playback (VideoPlayer component)
+    - .menu-action--popout                       => opens the video in a popout/modal window
+    - .menu-action--fullscreen                   => enters browser fullscreen for this container
+   Note: the play/pause/fullscreen/popout buttons are rendered by the VideoPlayer component
+   and should toggle behaviour via JS (not CSS). Keep this wrapper for sizing + rounded corners. */
 .video-inline-player {
   width: 100%;
   border-radius: 14px;
@@ -6,6 +13,11 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+/* The embedded iframe (YouTube, Vimeo, or hosted player).
+   Connected UI:
+    - Fullscreen action should adjust the iframe height (use the Fullscreen API from JS).
+    - Popout action can replace this iframe with a separate <VideoModal> instance.
+   Keep a fixed height for inline layout; JS can switch to 100vh when toggling fullscreen/popout. */
 .video-inline-player iframe {
   width: 100%;
   height: 200px;
@@ -13,9 +25,21 @@
   display: block;
 }
 
+/* Short coaching note that accompanies the video.
+   Connected UI:
+    - .menu-action--toggle-notes (optional) => show/hide this note area if you implement a notes toggle.
+    - When the video is popped out or maximized you may want to hide or pin this note in the modal. */
 .video-note {
   margin: 0 0 10px;
-  color: rgba(255, 255, 255, 0.75);
+  color: rgb(255, 255, 255);
   font-size: 0.9rem;
 }
+
+/* (Optional) Helper classes that VideoPlayer or the MovesMenu can add to the DOM.
+   These are documentation-only here to indicate expected class hooks for JS logic:
+
+   .video--fullscreen  => added while in fullscreen mode (adjusts styles via JS)
+   .video--popped-out  => added when player is shown in a separate popout/modal
+   .video-controls      => container for playback controls (play, pause, popout, fullscreen)
+*/
 

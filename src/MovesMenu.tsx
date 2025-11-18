@@ -11,9 +11,9 @@ interface MovesMenuProps {
   onPointerDown: (event: React.PointerEvent<HTMLDivElement>) => void
   onPointerMove: (event: React.PointerEvent<HTMLDivElement>) => void
   onPointerUp: (event: React.PointerEvent<HTMLDivElement>) => void
-  onAddBranch: () => void
-  onClearNode: () => void
-  onCloseMenu: () => void
+  onAddBranchButton: () => void
+  onClearNodeButton: () => void
+  onCloseMenuButton: () => void
   activeMoveId: string | null
   isTerminalMove: boolean
   groupedMoves: [string, BJJNode[]][]
@@ -31,9 +31,9 @@ const MovesMenu: FC<MovesMenuProps> = ({
   onPointerDown,
   onPointerMove,
   onPointerUp,
-  onAddBranch,
-  onClearNode,
-  onCloseMenu,
+  onAddBranchButton,
+  onClearNodeButton,
+  onCloseMenuButton,
   activeMoveId,
   isTerminalMove,
   groupedMoves,
@@ -41,80 +41,93 @@ const MovesMenu: FC<MovesMenuProps> = ({
   isLockedNode,
   selectedMoveDetails,
   videoEmbedUrl,
-}) => (
-  <div
-    className={`moves-menu${isDraggingMenu ? ' is-dragging' : ''}`}
-    role="dialog"
-    aria-label="Pocket Dojo move library"
-    ref={menuRef}
-    style={{ top: menuPosition.y, left: menuPosition.x }}
-    onPointerDown={onPointerDown}
-    onPointerMove={onPointerMove}
-    onPointerUp={onPointerUp}
-    onPointerCancel={onPointerUp}
-  >
-    <h2 className="moves-menu__title">{headerTitle}</h2>
-    <div className="moves-menu__actions-inline">
-      <button type="button" className="menu-action" onClick={onAddBranch} disabled={!activeMoveId || isTerminalMove}>
-        Add Branch
-      </button>
-      <button type="button" className="menu-action menu-action--ghost" onClick={onClearNode}>
-        Clear Node
-      </button>
-      <button type="button" className="close-menu-button" onClick={onCloseMenu}>
-        Close
-      </button>
-    </div>
+}) => {
+  const renderGroupList = () => {
+    if (groupedMoves.length === 0) {
+      return <p className="moves-menu__empty">No linked moves yet. Pick another technique or clear the node to restart.</p>
+    }
 
-    <div className="moves-menu__content">
-      {selectedMoveDetails && (
-        <div className="move-detail">
-          <p className="move-detail__eyebrow">{selectedMoveDetails.group}</p>
-          <h3 className="move-detail__title">{selectedMoveDetails.name}</h3>
-          <p className="move-detail__meta">
-            {selectedMoveDetails.type} Stage {selectedMoveDetails.stage}
-          </p>
-          <p className="move-detail__notes">{selectedMoveDetails.notes_md || 'No description provided yet.'}</p>
+    return groupedMoves.map(([group, moveNodes]) => (
+      <div className="moves-menu__group" key={group}>
+        <p className="moves-menu__group-title">{group}</p>
+        <ul className="moves-menu__list">
+          {moveNodes.map((move) => {
+            const isSelected = activeMoveId === move.id
+            return (
+              <li key={move.id} className="moves-menu__list-item">
+                <button
+                  type="button"
+                  className={`moves-menu__item${isSelected ? ' is-selected' : ''}`}
+                  onClick={() => onSelectMove(move.id)}
+                  disabled={isLockedNode}
+                >
+                  <span className="move-name">{move.name}</span>
+                  <span className="move-type">{move.type}</span>
+                </button>
+              </li>
+            )
+          })}
+        </ul>
+      </div>
+    ))
+  }
 
-          <div className="moves-menu__video-section">
-            <h4>Technique Video</h4>
-            <TechniqueVideo videoUrl={videoEmbedUrl} />
-          </div>
-        </div>
-      )}
+  return (
+    <div
+      className={`moves-menu${isDraggingMenu ? ' is-dragging' : ''}`}
+      role="dialog"
+      aria-label="Pocket Dojo move library"
+      ref={menuRef}
+      style={{ top: menuPosition.y, left: menuPosition.x }}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerUp}
+    >
+      <h2 className="moves-menu__title">{headerTitle}</h2>
+      <div className="moves-menu__actions-inline">
+        <button
+          type="button"
+          className="menu-action menu-action--add-branch"
+          onClick={onAddBranchButton}
+          disabled={!activeMoveId || isTerminalMove}
+        >
+          Add Branch
+        </button>
+        <button
+          type="button"
+          className="menu-action menu-action--clear-node"
+          onClick={onClearNodeButton}
+        >
+          Clear Node
+        </button>
+        <button type="button" className="menu-action menu-action--close" onClick={onCloseMenuButton}>
+          Close
+        </button>
+      </div>
 
-      {!selectedMoveDetails ? (
-        groupedMoves.length === 0 ? (
-          <p className="moves-menu__empty">No linked moves yet. Pick another technique or clear the node to restart.</p>
-        ) : (
-          groupedMoves.map(([group, moveNodes]) => (
-            <div className="moves-menu__group" key={group}>
-              <p className="moves-menu__group-title">{group}</p>
-              <ul className="moves-menu__list">
-                {moveNodes.map((move) => {
-                  const isSelected = activeMoveId === move.id
-                  return (
-                    <li key={move.id} className="moves-menu__list-item">
-                      <button
-                        type="button"
-                        className={`moves-menu__item${isSelected ? ' is-selected' : ''}`}
-                        onClick={() => onSelectMove(move.id)}
-                        disabled={isLockedNode}
-                      >
-                        <span className="move-name">{move.name}</span>
-                        <span className="move-type">{move.type}</span>
-                      </button>
-                    </li>
-                  )
-                })}
-              </ul>
+      <div className="moves-menu__content">
+        {selectedMoveDetails && (
+          <div className="move-detail">
+            <p className="move-detail__eyebrow">{selectedMoveDetails.group}</p>
+            <h3 className="move-detail__title">{selectedMoveDetails.name}</h3>
+            <p className="move-detail__meta">
+              {selectedMoveDetails.type} Stage {selectedMoveDetails.stage}
+            </p>
+            <p className="move-detail__notes">{selectedMoveDetails.notes_md || 'No description provided yet.'}</p>
+
+            <div className="moves-menu__video-section">
+              <h4>Technique Video</h4>
+              <TechniqueVideo videoUrl={videoEmbedUrl} />
             </div>
-          ))
-        )
-      ) : null}
+          </div>
+        )}
+
+        {!selectedMoveDetails ? renderGroupList() : null}
+      </div>
     </div>
-  </div>
-)
+  )
+}
 
 export default MovesMenu
 
