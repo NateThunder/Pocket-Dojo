@@ -1,3 +1,6 @@
+/* Container: flyout panel that holds the moves list, details and video.
+   Connected UI: the "open moves" toggle (in the Game or MoveList components)
+   shows/hides this .moves-menu element. */
 .moves-menu {
   position: absolute;
   top: 0;
@@ -16,10 +19,14 @@
   cursor: grab;
 }
 
+/* Drag state variant for the whole panel (used while repositioning the menu).
+   Triggered by drag handlers implemented on the header (JS). */
 .moves-menu.is-dragging {
   cursor: grabbing;
 }
 
+/* Header: sticky top area used as the drag handle and title container.
+   Connected UI: includes the title and the inline action buttons (Add, Close, etc.). */
 .moves-menu__header {
   position: sticky;
   top: -16px;
@@ -34,12 +41,19 @@
   gap: 10px;
 }
 
+/* Title text inside the header. */
 .moves-menu__title {
   margin: 0;
   text-align: center;
   font-size: 1.25rem;
 }
 
+/* Inline actions row inside the header.
+   Connected UI buttons (use class "menu-action" + modifiers):
+    - .menu-action--add-branch => "Add Branch" button
+    - .menu-action--clear-node => "Clear Node" / reset selection
+    - .menu-action--close => "Close" (hide the moves menu)
+   These buttons are rendered inside this container. */
 .moves-menu__actions-inline {
   display: flex;
   align-items: center;
@@ -49,6 +63,8 @@
   margin-bottom: 12px;
 }
 
+/* Base styles for header/item action buttons.
+   Use modifiers to identify purpose and keep markup consistent. */
 .menu-action {
   border-radius: 999px;
   padding: 6px 14px;
@@ -60,34 +76,48 @@
   border: none;
   font-weight: 600;
 }
+
+/* Specific modifier: add branch button (header) */
+.menu-action--add-branch {
+  background-color: #ffd577;
+  color: #1a1a1a;
+}
+
+/* Hover state for primary actions */
 .menu-action:hover,
 .menu-action:focus-visible {
-   background-color: #ffde98;
+  background-color: #ffde98;
   color: #1a1a1a;
   outline: none;
 }
 
+/* Disabled appearance — used for buttons that are not applicable in the current state. */
 .menu-action:disabled {
   opacity: 0.45;
   cursor: not-allowed;
   pointer-events: none;
 }
 
-.menu-action--ghost {
+/* Secondary/ghost action used for "clear" type actions.
+   Connected UI: Clear selection / Reset node details. */
+.menu-action--clear-node {
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.2);
   color: #f5f5f5;
 }
 
-.menu-action--ghost:hover,
-.menu-action--ghost:focus-visible {
+/* Hover feedback for clear/ghost button */
+.menu-action--clear-node:hover,
+.menu-action--clear-node:focus-visible {
   background-color: rgba(255, 255, 255, 0.1);
   color: #ffd577;
   transform: translateY(-1px);
   outline: none;
 }
 
-.close-menu-button {
+/* Close button (prominent destructive/exit action).
+   Connected UI: closes the entire moves menu panel. */
+.menu-action--close {
   background-color: #c41717;
   border: 1px solid rgba(255, 255, 255, 0.35);
   border-radius: 999px;
@@ -98,24 +128,29 @@
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-.close-menu-button:hover,
-.close-menu-button:focus-visible {
+/* Hover feedback for close button */
+.menu-action--close:hover,
+.menu-action--close:focus-visible {
   background-color: #e85555;
   color: #1a1a1a;
   outline: none;
 }
 
+/* Main content area that stacks groups of moves and the details panel. */
 .moves-menu__content {
   display: flex;
   flex-direction: column;
   gap: 18px;
 }
 
+/* Shown when there are no moves to display. */
 .moves-menu__empty {
   margin: 0;
   color: rgba(255, 255, 255, 0.7);
 }
 
+/* Group container (e.g., "Stage 1 - Standing").
+   Group titles describe the section; may be toggled or used for filtering. */
 .moves-menu__group {
   display: flex;
   flex-direction: column;
@@ -125,6 +160,7 @@
   padding: 10px;
 }
 
+/* Group title styling. Connected UI: purely informational label above each group. */
 .moves-menu__group-title {
   margin: 0 0 6px;
   font-size: 0.75rem;
@@ -134,6 +170,7 @@
   transition: none;
 }
 
+/* The list that holds each move row. */
 .moves-menu__list {
   list-style: none;
   margin: 0;
@@ -143,6 +180,13 @@
   gap: 8px;
 }
 
+/* Individual move row. Connected UI:
+   - clicking the row selects the move (shows details)
+   - rows may include small buttons (e.g., play video, pin, favorite) — those should use .menu-action
+   Example children inside a .moves-menu__item:
+     <button class="menu-action menu-action--play">Play</button>
+     <button class="menu-action menu-action--popout">Popout</button>
+*/
 .moves-menu__item {
   width: 100%;
   display: flex;
@@ -164,6 +208,7 @@
   transform: none;
 }
 
+/* Hover and focus states for move rows. */
 .moves-menu__item:hover,
 .moves-menu__item:focus-visible {
   background: rgba(255, 255, 255, 0.08);
@@ -172,17 +217,20 @@
   outline: none;
 }
 
+/* Selected move row appearance. */
 .moves-menu__item.is-selected {
   border-color: #f0c14b;
   background: rgba(240, 193, 75, 0.18);
   box-shadow: inset 0 0 0 1px rgba(240, 193, 75, 0.35);
 }
 
+/* Typography for the move name (left side of the row). */
 .move-name {
   font-size: 0.72rem;
   font-weight: 600;
 }
 
+/* Move type badge styling (e.g., "Sweep", "Pass"). */
 .move-type {
   font-size: 0.75rem;
   color: #9cc4ff;
@@ -190,18 +238,21 @@
   letter-spacing: 0.08em;
 }
 
+/* Video section line that devides text from video section */
 .moves-menu__video-section {
   margin-top: 0px;
   padding-top: 0px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+/* Detail column that sits above/beside the video and notes. */
 .move-detail {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
+/* Small label above the technique title; informational only. */
 .move-detail__eyebrow {
   margin: 0;
   text-transform: uppercase;
@@ -210,17 +261,20 @@
   color: #f0c14b;
 }
 
+/* Technique title styling. */
 .move-detail__title {
   margin: 0;
   font-size: 1.4rem;
 }
 
+/* Meta information (stage, type, aliases). */
 .move-detail__meta {
   margin: 0;
   color: rgba(255, 255, 255, 0.7);
   font-size: 0.9rem;
 }
 
+/* Notes copy / coaching text. */
 .move-detail__notes {
   margin: 0;
   color: rgba(255, 255, 255, 0.85);
