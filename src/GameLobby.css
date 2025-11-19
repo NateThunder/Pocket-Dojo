@@ -1,7 +1,7 @@
 .game-lobby {
   display: flex;
   flex-direction: column;
-  gap: 44px;
+  gap: 28px;
   padding: 24px;
   border-radius: 24px;
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -14,7 +14,19 @@
   text-align: left;
   display: flex;
   flex-direction: column;
-  gap: 0px;
+  gap: 4px;
+}
+
+.game-lobby__header .eyebrow {
+  margin: 0;
+}
+
+.game-lobby__header h2 {
+  margin: 0;
+}
+
+.game-lobby__header .section-copy {
+  margin: 2px 0 12px;
 }
 
 .game-lobby__grid {

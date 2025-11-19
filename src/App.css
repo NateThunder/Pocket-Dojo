@@ -9,6 +9,19 @@
   gap: 32px;
 }
 
+.app--with-sidebar {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.app-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
 /* Floating tab navigation for top-level sections */
 .menu-bar {
   display: flex;
@@ -52,6 +65,53 @@
   box-shadow: 0 8px 22px rgba(0, 0, 0, 0.45);
 }
 
+.menu-bar.vertical {
+  flex-direction: column;
+  align-items: stretch;
+  width: min(220px, 100%);
+  padding: 20px;
+}
+
+.menu-bar.vertical .menu-button {
+  width: 100%;
+}
+
+.app--with-sidebar .menu-bar.vertical {
+  position: sticky;
+  top: 40px;
+}
+
+.menu-toggle {
+  display: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  gap: 5px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  margin-bottom: 16px;
+}
+
+.menu-toggle span {
+  display: block;
+  width: 18px;
+  height: 2px;
+  background: currentColor;
+  border-radius: 2px;
+}
+
+.menu-toggle:hover,
+.menu-toggle:focus-visible {
+  background: rgba(0, 0, 0, 0.7);
+  outline: none;
+}
+
 /* Shared content card styling for placeholder/future sections */
 .content-card {
   width: min(90%, 640px);
@@ -77,17 +137,6 @@
   font-size: clamp(1.75rem, 4vw, 2.4rem);
 }
 
-.welcome-copy {
-  margin: 0;
-  color: #e0e0e0;
-  line-height: 1.6;
-}
-
-.section-copy {
-  margin: 0;
-  color: #dcdcdc;
-  line-height: 1.6;
-}
 
 /* Home hero & supporting text */
 .home-hero {
@@ -141,3 +190,58 @@
 }
 
 
+.menu-toggle {
+  display: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  gap: 5px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.menu-toggle span {
+  display: block;
+  width: 18px;
+  height: 2px;
+  background: currentColor;
+  border-radius: 2px;
+}
+
+.menu-toggle:hover,
+.menu-toggle:focus-visible {
+  background: rgba(0, 0, 0, 0.7);
+  outline: none;
+}
+
+@media (max-width: 768px) {
+  .app--with-sidebar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .menu-toggle {
+    display: flex;
+  }
+
+  .menu-bar.vertical {
+    display: none;
+    width: 100%;
+    position: static;
+    padding: 16px;
+  }
+
+  .menu-bar.vertical.is-open {
+    display: flex;
+  }
+
+  .games-stage {
+    width: 100%;
+  }
+}

@@ -439,7 +439,7 @@ function Game() {
             ↷
           </button>
           <button type="button" className="toolbar-secondary toolbar-delete" onClick={handleDeleteFlow}>
-            Delete
+            Delete Flow
           </button>
         </div>
       </div>
