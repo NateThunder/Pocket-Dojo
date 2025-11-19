@@ -107,8 +107,8 @@ You can tag these and calculate progress off them.
 
 * [x] Moves flow chart
 * [x] Video Player
-* [ ] moves menue start in same position for new flow
 * [ ] sometime you have to click the box twice
+* [ ] moves menue start in same position for new flow
 * [ ] delete buttons or clear all button
 * [ ] Look at other apps similar and look at reviews on what people want
 * [ ] Implement a chat bot feture
@@ -117,10 +117,8 @@ You can tag these and calculate progress off them.
 * [ ] Vidoe of full sequence of moves
 * [ ] User progress tracking
 * [ ] Coach/admin editor
-* [ ] Visual node/graph view
 * [ ] Multiple curricula (no-gi, guard-only, passing-only)
 * [ ] Gym spaces and coach approvals
-* [ ] Offline video support
 
 ---
 
