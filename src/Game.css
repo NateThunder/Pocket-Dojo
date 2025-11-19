@@ -1,6 +1,86 @@
+.game-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  height: 100%;
+}
+
+.game-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 18px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(8px);
+}
+
+.game-toolbar__info {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.toolbar-link {
+  background: transparent;
+  border: none;
+  color: #ffd577;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 999px;
+  transition: background-color 0.2s ease;
+}
+
+.toolbar-link:hover,
+.toolbar-link:focus-visible {
+  background: rgba(255, 255, 255, 0.08);
+  outline: none;
+}
+
+.toolbar-label {
+  margin: 0;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.toolbar-value {
+  margin: 2px 0 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.toolbar-primary {
+  border-radius: 999px;
+  padding: 8px 18px;
+  border: none;
+  font-weight: 700;
+  background: #34d399;
+  color: #0b2720;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.toolbar-primary:hover,
+.toolbar-primary:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 25px rgba(0, 0, 0, 0.35);
+  outline: none;
+}
+
+.toolbar-primary.is-saved {
+  background: #15803d;
+  color: #f5f5f5;
+}
+
 .game-arena {
   width: 100%;
   height: 100%;
+  flex: 1;
   border-radius: 28px;
   border: 1px dashed rgba(255, 255, 255, 0.35);
   background: radial-gradient(circle at top, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.01));
@@ -45,6 +125,8 @@
   background: linear-gradient(135deg, #ff8f70 0%, #ff3d54 100%);
   color: #fff;
   font-weight: 600;
+  font-size: 0.85rem; /* Size of the text in node box*/
+  line-height: 1.2;
   display: flex;
   align-items: center;
   justify-content: center;

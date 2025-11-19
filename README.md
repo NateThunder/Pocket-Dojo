@@ -107,6 +107,10 @@ You can tag these and calculate progress off them.
 
 * [x] Moves flow chart
 * [x] Video Player
+* [ ] Look at other apps similar and look at reviews on what people want
+* [ ] Implement a chat bot feture
+* [ ] Light and dark theme
+* [ ] Add firends flow charts
 * [ ] Vidoe of full sequence of moves
 * [ ] User progress tracking
 * [ ] Coach/admin editor
