@@ -292,18 +292,24 @@ function Game() {
     }
 
     const shouldLockScroll = Boolean(activeMenuNode) || isMobileFullscreen
+    const previousOverflow = document.body.style.overflow
+    const previousHtmlOverflow = document.documentElement.style.overflow
+
     if (shouldLockScroll) {
-      const previous = document.body.style.overflow
       document.body.style.overflow = 'hidden'
+      document.documentElement.style.overflow = 'hidden'
       return () => {
-        document.body.style.overflow = previous
+        document.body.style.overflow = previousOverflow
+        document.documentElement.style.overflow = previousHtmlOverflow
       }
     }
 
-    document.body.style.overflow = ''
+    document.body.style.overflow = previousOverflow
+    document.documentElement.style.overflow = previousHtmlOverflow
 
     return () => {
-      document.body.style.overflow = ''
+      document.body.style.overflow = previousOverflow
+      document.documentElement.style.overflow = previousHtmlOverflow
     }
   }, [isMobile, activeMenuNode, isMobileFullscreen])
 
