@@ -128,7 +128,8 @@
 
 .games-stage {
   width: min(96vw, 1180px);
-  height: clamp(360px, 70vh, 720px);
+  min-height: 640px;
+  height: min(80vh, 860px);
   margin: 0 auto;
 }
 

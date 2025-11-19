@@ -25,6 +25,21 @@ export type Connection = {
 
 const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max)
 
+export const createInitialNodeState = (): ActiveNode[] => [
+  {
+    id: 'node-1',
+    parentId: null,
+    moveId: null,
+    position: { x: 80, y: 80 },
+  },
+]
+
+const cloneNodes = (list: ActiveNode[]): ActiveNode[] =>
+  list.map((node) => ({
+    ...node,
+    position: { ...node.position },
+  }))
+
 const collectDescendantIds = (targetId: string, nodes: ActiveNode[]) => {
   const ids = new Set<string>()
   const queue = [targetId]
@@ -69,9 +84,7 @@ export function useNodeMechanics(arenaRef: RefObject<HTMLDivElement | null>) {
   const menuDragActiveRef = useRef(false)
   const menuDragStartRef = useRef({ x: 0, y: 0 })
 
-  const [nodes, setNodes] = useState<ActiveNode[]>(() => [
-    { id: 'node-1', parentId: null, moveId: null, position: { x: 80, y: 80 } },
-  ])
+  const [nodes, setNodes] = useState<ActiveNode[]>(() => createInitialNodeState())
   const [activeMenuNodeId, setActiveMenuNodeId] = useState<string | null>(null)
   const [draggingNodeId, setDraggingNodeId] = useState<string | null>(null)
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
@@ -354,12 +367,42 @@ export function useNodeMechanics(arenaRef: RefObject<HTMLDivElement | null>) {
   const handleClearNode = () => {
     if (!activeMenuNode) return
 
+    const isRootNode = activeMenuNode.parentId === null
+
     setNodes((prev) => {
       const descendants = collectDescendantIds(activeMenuNode.id, prev)
-      return prev
-        .filter((node) => !descendants.has(node.id))
-        .map((node) => (node.id === activeMenuNode.id ? { ...node, moveId: null } : node))
+      let nextNodes = prev.filter((node) => !descendants.has(node.id))
+
+      if (isRootNode) {
+        nextNodes = nextNodes.map((node) =>
+          node.id === activeMenuNode.id ? { ...node, moveId: null } : node,
+        )
+      } else {
+        nextNodes = nextNodes.filter((node) => node.id !== activeMenuNode.id)
+      }
+
+      return nextNodes
     })
+
+    setActiveMenuNodeId(() => {
+      if (isRootNode) {
+        return activeMenuNode.id
+      }
+      return activeMenuNode.parentId ?? null
+    })
+  }
+
+  const loadNodesFromSnapshot = (snapshot?: ActiveNode[]) => {
+    const next = snapshot && snapshot.length > 0 ? cloneNodes(snapshot) : createInitialNodeState()
+    setNodes(next)
+    setActiveMenuNodeId(null)
+    const highest = next.reduce((max, node) => {
+      const match = /node-(\d+)/.exec(node.id)
+      if (!match) return max
+      const numericId = Number(match[1])
+      return Number.isNaN(numericId) ? max : Math.max(max, numericId)
+    }, 1)
+    nodeCounterRef.current = highest + 1
   }
 
   const closeMenu = () => setActiveMenuNodeId(null)
@@ -389,6 +432,7 @@ export function useNodeMechanics(arenaRef: RefObject<HTMLDivElement | null>) {
     handleSelectMove,
     handleAddBranch,
     handleClearNode,
+    loadNodesFromSnapshot,
     closeMenu,
     baseNodeLookup,
   }
