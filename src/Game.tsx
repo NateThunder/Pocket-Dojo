@@ -9,6 +9,26 @@ import './Game.css'
 const HISTORY_LIMIT = 25
 const ACTION_DEBOUNCE_MS = 200
 
+const useIsMobile = (breakpoint = 768) => {
+  const [isMobile, setIsMobile] = useState<boolean>(() => {
+    if (typeof window === 'undefined') {
+      return false
+    }
+    return window.matchMedia(`(max-width: ${breakpoint}px)`).matches
+  })
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const mediaQuery = window.matchMedia(`(max-width: ${breakpoint}px)`)
+    const handleChange = (event: MediaQueryListEvent) => setIsMobile(event.matches)
+    setIsMobile(mediaQuery.matches)
+    mediaQuery.addEventListener('change', handleChange)
+    return () => mediaQuery.removeEventListener('change', handleChange)
+  }, [breakpoint])
+
+  return isMobile
+}
+
 const convertToYouTubeEmbed = (rawUrl?: string) => {
   if (!rawUrl) return null
 
@@ -64,6 +84,7 @@ const areNodesEqual = (a: ActiveNode[], b: ActiveNode[]) => {
 }
 
 function Game() {
+  const isMobile = useIsMobile()
   const arenaRef = useRef<HTMLDivElement | null>(null)
   const {
     nodes,
@@ -416,10 +437,11 @@ function Game() {
             isTerminalMove={isTerminalMove}
             groupedMoves={groupedMoves}
             onSelectMove={handleSelectMove}
-            isLockedNode={Boolean(activeMenuNode.moveId)}
-            selectedMoveDetails={selectedMoveDetails}
-            videoEmbedUrl={videoEmbedUrl}
-          />
+          isLockedNode={Boolean(activeMenuNode.moveId)}
+          selectedMoveDetails={selectedMoveDetails}
+          videoEmbedUrl={videoEmbedUrl}
+          isMobile={isMobile}
+        />
         )}
       </div>
     </div>
@@ -427,8 +449,5 @@ function Game() {
 }
 
 export default Game
-
-
-
 
 
