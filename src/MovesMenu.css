@@ -1,4 +1,4 @@
-/* Container: flyout panel that holds the moves list, details and video.
+﻿/* Container: flyout panel that holds the moves list, details and video.
    Connected UI: the "open moves" toggle (in the Game or MoveList components)
    shows/hides this .moves-menu element. */
 .moves-menu {
@@ -23,6 +23,30 @@
    Triggered by drag handlers implemented on the header (JS). */
 .moves-menu.is-dragging {
   cursor: grabbing;
+}
+
+.moves-menu.is-mobile {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  top: auto;
+  width: 100%;
+  max-width: none;
+  max-height: 65vh;
+  padding: 20px;
+  border-radius: 24px 24px 0 0;
+  cursor: default;
+  z-index: 20;
+}
+
+.moves-menu.is-mobile .moves-menu__header {
+  cursor: default;
+  position: static;
+}
+
+.moves-menu.is-mobile .moves-menu__actions-inline {
+  justify-content: flex-start;
 }
 
 /* Header: sticky top area used as the drag handle and title container.
@@ -91,7 +115,7 @@
   outline: none;
 }
 
-/* Disabled appearance — used for buttons that are not applicable in the current state. */
+/* Disabled appearance â€” used for buttons that are not applicable in the current state. */
 .menu-action:disabled {
   opacity: 0.45;
   cursor: not-allowed;
@@ -182,7 +206,7 @@
 
 /* Individual move row. Connected UI:
    - clicking the row selects the move (shows details)
-   - rows may include small buttons (e.g., play video, pin, favorite) — those should use .menu-action
+   - rows may include small buttons (e.g., play video, pin, favorite) â€” those should use .menu-action
    Example children inside a .moves-menu__item:
      <button class="menu-action menu-action--play">Play</button>
      <button class="menu-action menu-action--popout">Popout</button>
@@ -280,3 +304,7 @@
   color: rgba(255, 255, 255, 0.85);
   line-height: 1.5;
 }
+
+
+
+

@@ -21,6 +21,7 @@ interface MovesMenuProps {
   isLockedNode: boolean
   selectedMoveDetails: BJJNode | null
   videoEmbedUrl: string | null
+  isMobile: boolean
 }
 
 const MovesMenu: FC<MovesMenuProps> = ({
@@ -41,6 +42,7 @@ const MovesMenu: FC<MovesMenuProps> = ({
   isLockedNode,
   selectedMoveDetails,
   videoEmbedUrl,
+  isMobile,
 }) => {
   const renderGroupList = () => {
     if (groupedMoves.length === 0) {
@@ -72,17 +74,23 @@ const MovesMenu: FC<MovesMenuProps> = ({
     ))
   }
 
+  const pointerHandlers = isMobile
+    ? {}
+    : {
+        onPointerDown,
+        onPointerMove,
+        onPointerUp,
+        onPointerCancel: onPointerUp,
+      }
+
   return (
     <div
-      className={`moves-menu${isDraggingMenu ? ' is-dragging' : ''}`}
+      className={`moves-menu${isDraggingMenu ? ' is-dragging' : ''}${isMobile ? ' is-mobile' : ''}`}
       role="dialog"
       aria-label="Pocket Dojo move library"
       ref={menuRef}
-      style={{ top: menuPosition.y, left: menuPosition.x }}
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={onPointerUp}
-      onPointerCancel={onPointerUp}
+      style={isMobile ? undefined : { top: menuPosition.y, left: menuPosition.x }}
+      {...pointerHandlers}
     >
       <h2 className="moves-menu__title">{headerTitle}</h2>
       <div className="moves-menu__actions-inline">
