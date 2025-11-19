@@ -310,6 +310,13 @@ function Game() {
         saves={saves}
         onCreateSave={handleCreateNewSave}
         onOpenSave={handleOpenSave}
+        onDeleteSave={(id) => {
+          if (typeof window !== 'undefined' && !window.confirm('Delete this flow permanently?')) {
+            return
+          }
+          const remaining = saves.filter((save) => save.id !== id)
+          persistSaves(remaining)
+        }}
         baseNodeLookup={baseNodeLookup}
       />
     )
@@ -351,12 +358,7 @@ function Game() {
           >
             ↷
           </button>
-          <button
-            type="button"
-            className="toolbar-secondary toolbar-delete"
-            onClick={handleDeleteFlow}
-            title="Delete flow"
-          >
+          <button type="button" className="toolbar-secondary toolbar-delete" onClick={handleDeleteFlow}>
             Delete
           </button>
         </div>
@@ -425,9 +427,6 @@ function Game() {
 }
 
 export default Game
-
-
-
 
 
 

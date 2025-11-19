@@ -7,6 +7,7 @@ interface GameLobbyProps {
   saves: GameSave[]
   onCreateSave: () => void
   onOpenSave: (id: string) => void
+  onDeleteSave: (id: string) => void
   baseNodeLookup: Record<string, BJJNode>
 }
 
@@ -19,7 +20,13 @@ const getStageColorClass = (stage: StageId | null) => {
   return `preview-node stage-${stage}`
 }
 
-const GameLobby: FC<GameLobbyProps> = ({ saves, onCreateSave, onOpenSave, baseNodeLookup }) => {
+const GameLobby: FC<GameLobbyProps> = ({
+  saves,
+  onCreateSave,
+  onOpenSave,
+  onDeleteSave,
+  baseNodeLookup,
+}) => {
   const buildPreviewStages = (save: GameSave) => {
     const stages = save.nodes
       .map((node) => (node.moveId ? baseNodeLookup[node.moveId]?.stage ?? null : null))
@@ -57,6 +64,17 @@ const GameLobby: FC<GameLobbyProps> = ({ saves, onCreateSave, onOpenSave, baseNo
           const stages = buildPreviewStages(save)
           return (
             <div className="game-card-wrapper" key={save.id}>
+              <button
+                type="button"
+                className="game-card__delete"
+                onClick={(event) => {
+                  event.stopPropagation()
+                  onDeleteSave(save.id)
+                }}
+                aria-label={`Delete ${save.name}`}
+              >
+                Delete
+              </button>
               <button type="button" className="game-card" onClick={() => onOpenSave(save.id)}>
                 <div className="game-card__preview">
                   {stages.map((stage, index) => (

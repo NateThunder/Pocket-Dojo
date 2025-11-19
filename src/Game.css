@@ -86,6 +86,10 @@
 }
 
 .toolbar-secondary.toolbar-delete {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
   width: auto;
   padding: 0 16px;
   border-radius: 999px;
