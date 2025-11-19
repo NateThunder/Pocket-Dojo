@@ -285,6 +285,29 @@ function Game() {
   }, [autoSaveEnabled, nodes, viewMode])
 
   useEffect(() => {
+    if (typeof document === 'undefined') return
+    if (!isMobile) {
+      document.body.style.overflow = ''
+      return
+    }
+
+    const shouldLockScroll = Boolean(activeMenuNode) || isMobileFullscreen
+    if (shouldLockScroll) {
+      const previous = document.body.style.overflow
+      document.body.style.overflow = 'hidden'
+      return () => {
+        document.body.style.overflow = previous
+      }
+    }
+
+    document.body.style.overflow = ''
+
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [isMobile, activeMenuNode, isMobileFullscreen])
+
+  useEffect(() => {
     if (!isMobile) {
       setIsMobileFullscreen(false)
     }
