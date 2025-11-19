@@ -1,4 +1,4 @@
-.game-shell {
+﻿.game-shell {
   display: flex;
   flex-direction: column;
   gap: 18px;
@@ -60,7 +60,7 @@
   font-weight: 600;
 }
 
-.toolbar-secondary {
+ .toolbar-secondary {
   width: 36px;
   height: 36px;
   border-radius: 50%;
@@ -83,6 +83,21 @@
   opacity: 0.4;
   cursor: not-allowed;
   transform: none;
+}
+
+.toolbar-secondary.toolbar-delete {
+  width: auto;
+  padding: 0 16px;
+  border-radius: 999px;
+  border-color: rgba(255, 71, 71, 0.5);
+  background: rgba(255, 56, 56, 0.08);
+  color: #ff5252;
+}
+
+.toolbar-secondary.toolbar-delete:hover,
+.toolbar-secondary.toolbar-delete:focus-visible {
+  background: rgba(255, 56, 56, 0.18);
+  color: #ffaaaa;
 }
 
 .autosave-toggle {
@@ -230,3 +245,4 @@
   box-shadow: 0 0 0 3px rgba(255, 213, 119, 0.7), 0 0 18px rgba(255, 213, 119, 0.6),
     0 25px 50px rgba(0, 0, 0, 0.55);
 }
+

@@ -262,6 +262,29 @@ function Game() {
     handleSaveProgress()
   }, [autoSaveEnabled, nodes, viewMode])
 
+  const handleDeleteFlow = () => {
+    const confirmed =
+      typeof window === 'undefined' ? true : window.confirm('Delete this flow permanently?')
+    if (!confirmed) {
+      return
+    }
+
+    const resetNodes = createInitialNodeState()
+    if (!activeSaveId) {
+      applySnapshot(resetNodes, { resetHistory: true })
+      closeMenu()
+      setViewMode('lobby')
+      return
+    }
+
+    const remaining = saves.filter((save) => save.id !== activeSaveId)
+    persistSaves(remaining)
+    setActiveSaveId(null)
+    applySnapshot(resetNodes, { resetHistory: true })
+    closeMenu()
+    setViewMode('lobby')
+  }
+
   const handleBackToLobby = () => {
     closeMenu()
     setViewMode('lobby')
@@ -327,6 +350,14 @@ function Game() {
             title="Redo"
           >
             ↷
+          </button>
+          <button
+            type="button"
+            className="toolbar-secondary toolbar-delete"
+            onClick={handleDeleteFlow}
+            title="Delete flow"
+          >
+            Delete
           </button>
         </div>
       </div>
@@ -394,6 +425,8 @@ function Game() {
 }
 
 export default Game
+
+
 
 
 
