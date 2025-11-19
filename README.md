@@ -107,6 +107,9 @@ You can tag these and calculate progress off them.
 
 * [x] Moves flow chart
 * [x] Video Player
+* [ ] moves menue start in same position for new flow
+* [ ] sometime you have to click the box twice
+* [ ] delete buttons or clear all button
 * [ ] Look at other apps similar and look at reviews on what people want
 * [ ] Implement a chat bot feture
 * [ ] Light and dark theme

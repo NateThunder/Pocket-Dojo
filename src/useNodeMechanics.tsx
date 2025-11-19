@@ -311,6 +311,8 @@ export function useNodeMechanics(arenaRef: RefObject<HTMLDivElement | null>) {
     const selectedMove = baseNodeLookup[moveId]
     const isSubmission = selectedMove?.type === 'Submission'
 
+    let nextActiveId: string | null = activeMenuNode.id
+
     setNodes((prev) => {
       const targetNode = prev.find((node) => node.id === activeMenuNode.id)
       if (!targetNode) {
@@ -324,6 +326,7 @@ export function useNodeMechanics(arenaRef: RefObject<HTMLDivElement | null>) {
       )
 
       if (isSubmission || !arenaRef.current) {
+        nextActiveId = targetNode.id
         return updatedNodes
       }
 
@@ -332,7 +335,7 @@ export function useNodeMechanics(arenaRef: RefObject<HTMLDivElement | null>) {
       )
 
       if (existingPlaceholders.length > 0) {
-        setActiveMenuNodeId(existingPlaceholders[0].id)
+        nextActiveId = existingPlaceholders[0].id
         return updatedNodes
       }
 
@@ -340,9 +343,13 @@ export function useNodeMechanics(arenaRef: RefObject<HTMLDivElement | null>) {
       const siblings = updatedNodes.filter((node) => node.parentId === targetNode.id)
       const newNode = createChildNode(targetNode, siblings.length, arenaRect, nodeCounterRef)
 
-      setActiveMenuNodeId(newNode.id)
+      nextActiveId = newNode.id
       return [...updatedNodes, newNode]
     })
+
+    if (nextActiveId) {
+      setActiveMenuNodeId(nextActiveId)
+    }
   }
 
   const handleAddBranch = () => {
