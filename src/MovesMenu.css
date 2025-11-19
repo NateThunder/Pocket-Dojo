@@ -27,15 +27,15 @@
 
 .moves-menu.is-mobile {
   position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  top: auto;
-  width: 100%;
-  max-width: none;
-  max-height: 65vh;
-  padding: 20px;
-  border-radius: 24px 24px 0 0;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100vw - 32px);
+  max-width: 420px;
+  max-height: 70vh;
+  padding: 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
   cursor: default;
   z-index: 20;
 }
@@ -43,10 +43,21 @@
 .moves-menu.is-mobile .moves-menu__header {
   cursor: default;
   position: static;
+  gap: 6px;
 }
 
 .moves-menu.is-mobile .moves-menu__actions-inline {
   justify-content: flex-start;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.moves-menu.is-mobile .move-detail__title {
+  font-size: 1.1rem;
+}
+
+.moves-menu.is-mobile .moves-menu__group {
+  padding: 8px;
 }
 
 /* Header: sticky top area used as the drag handle and title container.

@@ -123,6 +123,7 @@ function Game() {
   const [videoEmbedUrl, setVideoEmbedUrl] = useState<string | null>(null)
   const [autoSaveEnabled, setAutoSaveEnabled] = useState(true)
   const [historyIndex, setHistoryIndex] = useState(0)
+  const [isMobileFullscreen, setIsMobileFullscreen] = useState(false)
   const historyRef = useRef<ActiveNode[][]>([])
   const historySuspendRef = useRef(false)
   const historyDebounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -283,6 +284,18 @@ function Game() {
     handleSaveProgress()
   }, [autoSaveEnabled, nodes, viewMode])
 
+  useEffect(() => {
+    if (!isMobile) {
+      setIsMobileFullscreen(false)
+    }
+  }, [isMobile])
+
+  useEffect(() => {
+    if (isMobileFullscreen) {
+      closeMenu()
+    }
+  }, [isMobileFullscreen, closeMenu])
+
   const handleDeleteFlow = () => {
     const confirmed =
       typeof window === 'undefined' ? true : window.confirm('Delete this flow permanently?')
@@ -343,19 +356,36 @@ function Game() {
     )
   }
 
+  const shellClasses = ['game-shell', isMobile ? 'is-mobile' : '', isMobileFullscreen ? 'is-mobile-fullscreen' : '']
+    .filter(Boolean)
+    .join(' ')
+  const arenaClasses = ['game-arena', isMobileFullscreen ? 'is-mobile-fullscreen' : ''].filter(Boolean).join(' ')
+
   return (
-    <div className="game-shell">
+    <div className={shellClasses}>
       <div className="game-toolbar">
-        <div className="game-toolbar__info">
-          <button type="button" className="toolbar-link" onClick={handleBackToLobby}>
-            {'\u2190 Saved Flows'}
-          </button>
-          <div>
-            <p className="toolbar-label">Active Flow</p>
-            <p className="toolbar-value">{activeSave?.name ?? 'Unsaved Session'}</p>
+        <div className={`game-toolbar__info${isMobile ? ' is-mobile' : ''}`}>
+          <div className="toolbar-info__primary">
+            <button type="button" className="toolbar-link" onClick={handleBackToLobby}>
+              {'\u2190 Saved Flows'}
+            </button>
+            <div>
+              <p className="toolbar-label">Active Flow</p>
+              <p className="toolbar-value">{activeSave?.name ?? 'Unsaved Session'}</p>
+            </div>
           </div>
         </div>
         <div className="game-toolbar__actions">
+          {isMobile && (
+            <button
+              type="button"
+              className="toolbar-secondary toolbar-fullscreen"
+              onClick={() => setIsMobileFullscreen((prev) => !prev)}
+              title={isMobileFullscreen ? 'Exit full screen' : 'Enter full screen'}
+            >
+              {isMobileFullscreen ? 'Exit Full Screen' : 'Full Screen'}
+            </button>
+          )}
           <label className="autosave-toggle">
             <input type="checkbox" checked={autoSaveEnabled} onChange={handleToggleAutoSave} />
             <span className="autosave-toggle__slider" />
@@ -384,7 +414,16 @@ function Game() {
           </button>
         </div>
       </div>
-      <div className="game-arena" ref={arenaRef}>
+      <div className={arenaClasses} ref={arenaRef}>
+        {isMobileFullscreen && (
+          <button
+            type="button"
+            className="mobile-fullscreen-exit"
+            onClick={() => setIsMobileFullscreen(false)}
+          >
+            Exit Full Screen
+          </button>
+        )}
         <svg className="game-connections" aria-hidden="true" focusable="false">
           {connections.map((connection) => (
             <line
@@ -421,7 +460,7 @@ function Game() {
           )
         })}
 
-        {activeMenuNode && (
+        {activeMenuNode && !isMobileFullscreen && (
           <MovesMenu
             headerTitle={headerTitle}
             menuRef={menuRef}
@@ -449,5 +488,3 @@ function Game() {
 }
 
 export default Game
-
-
