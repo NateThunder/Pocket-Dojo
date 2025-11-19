@@ -6,6 +6,9 @@ import { createGameSave, loadGameSaves, persistGameSaves, updateGameSaveNodes, t
 import { createInitialNodeState, useNodeMechanics, type ActiveNode } from './useNodeMechanics'
 import './Game.css'
 
+const HISTORY_LIMIT = 25
+const ACTION_DEBOUNCE_MS = 200
+
 const convertToYouTubeEmbed = (rawUrl?: string) => {
   if (!rawUrl) return null
 
@@ -47,13 +50,12 @@ const areNodesEqual = (a: ActiveNode[], b: ActiveNode[]) => {
   for (let i = 0; i < a.length; i += 1) {
     const current = a[i]
     const other = b[i]
-    if (!other) return false
     if (
-      current.id !== other.id ||
-      current.parentId !== other.parentId ||
-      current.moveId !== other.moveId ||
-      current.position.x !== other.position.x ||
-      current.position.y !== other.position.y
+      current?.id !== other?.id ||
+      current?.parentId !== other?.parentId ||
+      current?.moveId !== other?.moveId ||
+      current?.position.x !== other?.position.x ||
+      current?.position.y !== other?.position.y
     ) {
       return false
     }
@@ -98,10 +100,11 @@ function Game() {
   const [saves, setSaves] = useState<GameSave[]>(() => loadGameSaves())
   const [activeSaveId, setActiveSaveId] = useState<string | null>(null)
   const [videoEmbedUrl, setVideoEmbedUrl] = useState<string | null>(null)
-  const [lastSavedSnapshot, setLastSavedSnapshot] = useState<ActiveNode[]>(() =>
-    cloneNodes(createInitialNodeState()),
-  )
-  const [isDirty, setIsDirty] = useState(true)
+  const [autoSaveEnabled, setAutoSaveEnabled] = useState(true)
+  const [historyIndex, setHistoryIndex] = useState(0)
+  const historyRef = useRef<ActiveNode[][]>([])
+  const historySuspendRef = useRef(false)
+  const historyDebounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const activeSave = useMemo(
     () => saves.find((save) => save.id === activeSaveId) ?? null,
@@ -116,9 +119,72 @@ function Game() {
   const duplicateNodes = (list = nodes) => cloneNodes(list)
 
   useEffect(() => {
-    const dirty = !areNodesEqual(nodes, lastSavedSnapshot)
-    setIsDirty((previous) => (previous !== dirty ? dirty : previous))
-  }, [nodes, lastSavedSnapshot])
+    historyRef.current = [cloneNodes(nodes)]
+    setHistoryIndex(0)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
+    if (historySuspendRef.current) {
+      historySuspendRef.current = false
+      return
+    }
+
+    const timer = setTimeout(() => {
+      const snapshot = cloneNodes(nodes)
+      if (historyRef.current.length === 0) {
+        historyRef.current = [snapshot]
+        setHistoryIndex(0)
+        return
+      }
+
+      if (areNodesEqual(snapshot, historyRef.current[historyIndex])) {
+        return
+      }
+
+      let nextHistory = historyRef.current
+      if (historyIndex < historyRef.current.length - 1) {
+        nextHistory = historyRef.current.slice(0, historyIndex + 1)
+      }
+
+      nextHistory = [...nextHistory, snapshot]
+
+      if (nextHistory.length > HISTORY_LIMIT) {
+        nextHistory = nextHistory.slice(nextHistory.length - HISTORY_LIMIT)
+        setHistoryIndex(nextHistory.length - 1)
+      } else {
+        setHistoryIndex(nextHistory.length - 1)
+      }
+
+      historyRef.current = nextHistory
+    }, ACTION_DEBOUNCE_MS)
+
+    if (historyDebounceTimerRef.current) {
+      clearTimeout(historyDebounceTimerRef.current)
+    }
+    historyDebounceTimerRef.current = timer
+
+    return () => {
+      if (historyDebounceTimerRef.current) {
+        clearTimeout(historyDebounceTimerRef.current)
+        historyDebounceTimerRef.current = null
+      }
+    }
+  }, [nodes, historyIndex])
+
+  const applySnapshot = (
+    snapshot: ActiveNode[],
+    { resetHistory = false, nextIndex }: { resetHistory?: boolean; nextIndex?: number } = {},
+  ) => {
+    historySuspendRef.current = true
+    loadNodesFromSnapshot(snapshot)
+    if (resetHistory) {
+      historyRef.current = [cloneNodes(snapshot)]
+      setHistoryIndex(0)
+    } else if (typeof nextIndex === 'number') {
+      setHistoryIndex(nextIndex)
+    }
+  }
 
   const promptForName = (message: string, fallback: string) => {
     if (typeof window === 'undefined') return null
@@ -133,11 +199,10 @@ function Game() {
     const name = promptForName('Name your new flow', defaultLabel)
     if (!name) return
     const initialNodes = createInitialNodeState()
-    setLastSavedSnapshot([])
-    setIsDirty(true)
-    const newSave = createGameSave(name, initialNodes)
+    const snapshot = cloneNodes(initialNodes)
+    const newSave = createGameSave(name, snapshot)
     persistSaves([...saves, newSave])
-    loadNodesFromSnapshot(initialNodes)
+    applySnapshot(snapshot, { resetHistory: true })
     setActiveSaveId(newSave.id)
     setViewMode('play')
   }
@@ -145,15 +210,13 @@ function Game() {
   const handleOpenSave = (saveId: string) => {
     const target = saves.find((save) => save.id === saveId)
     if (!target) return
-    setLastSavedSnapshot(cloneNodes(target.nodes))
-    setIsDirty(false)
-    loadNodesFromSnapshot(target.nodes)
+    const snapshot = cloneNodes(target.nodes)
+    applySnapshot(snapshot, { resetHistory: true })
     setActiveSaveId(target.id)
     setViewMode('play')
   }
 
   const handleSaveProgress = () => {
-    if (!isDirty) return
     const snapshot = duplicateNodes()
     if (!activeSaveId) {
       const defaultLabel = `Flow ${saves.length + 1}`
@@ -163,8 +226,6 @@ function Game() {
       persistSaves([...saves, newSave])
       setActiveSaveId(newSave.id)
       setViewMode('play')
-      setLastSavedSnapshot(snapshot)
-      setIsDirty(false)
       return
     }
 
@@ -172,9 +233,34 @@ function Game() {
       save.id === activeSaveId ? updateGameSaveNodes(save, snapshot) : save,
     )
     persistSaves(next)
-    setLastSavedSnapshot(snapshot)
-    setIsDirty(false)
   }
+
+  const handleUndo = () => {
+    if (historyIndex === 0 || historyRef.current.length === 0) return
+    const newIndex = historyIndex - 1
+    applySnapshot(historyRef.current[newIndex], { nextIndex: newIndex })
+  }
+
+  const handleRedo = () => {
+    if (historyRef.current.length === 0 || historyIndex >= historyRef.current.length - 1) return
+    const newIndex = historyIndex + 1
+    applySnapshot(historyRef.current[newIndex], { nextIndex: newIndex })
+  }
+
+  const handleToggleAutoSave = () => {
+    setAutoSaveEnabled((prev) => {
+      const next = !prev
+      if (next && viewMode === 'play') {
+        handleSaveProgress()
+      }
+      return next
+    })
+  }
+
+  useEffect(() => {
+    if (!autoSaveEnabled || viewMode !== 'play') return
+    handleSaveProgress()
+  }, [autoSaveEnabled, nodes, viewMode])
 
   const handleBackToLobby = () => {
     closeMenu()
@@ -192,6 +278,9 @@ function Game() {
 
   const selectedMoveDetails = activeMoveId ? baseNodeLookup[activeMoveId] ?? null : null
 
+  const canUndo = historyIndex > 0
+  const canRedo = historyRef.current.length > historyIndex + 1
+
   if (viewMode === 'lobby') {
     return (
       <GameLobby
@@ -208,18 +297,39 @@ function Game() {
       <div className="game-toolbar">
         <div className="game-toolbar__info">
           <button type="button" className="toolbar-link" onClick={handleBackToLobby}>
-            ← Saved Flows
+            {'\u2190 Saved Flows'}
           </button>
           <div>
             <p className="toolbar-label">Active Flow</p>
             <p className="toolbar-value">{activeSave?.name ?? 'Unsaved Session'}</p>
           </div>
         </div>
-        <button type="button" className="toolbar-primary" onClick={handleSaveProgress}>
-          Save Progress
-        </button>
+        <div className="game-toolbar__actions">
+          <label className="autosave-toggle">
+            <input type="checkbox" checked={autoSaveEnabled} onChange={handleToggleAutoSave} />
+            <span className="autosave-toggle__slider" />
+            <span className="autosave-toggle__label">Auto Save</span>
+          </label>
+          <button
+            type="button"
+            className="toolbar-secondary"
+            onClick={handleUndo}
+            disabled={!canUndo}
+            title="Undo"
+          >
+            ↶
+          </button>
+          <button
+            type="button"
+            className="toolbar-secondary"
+            onClick={handleRedo}
+            disabled={!canRedo}
+            title="Redo"
+          >
+            ↷
+          </button>
+        </div>
       </div>
-
       <div className="game-arena" ref={arenaRef}>
         <svg className="game-connections" aria-hidden="true" focusable="false">
           {connections.map((connection) => (
@@ -284,6 +394,8 @@ function Game() {
 }
 
 export default Game
+
+
 
 
 
